@@ -1,50 +1,70 @@
-//load fonts from figlet font lib, not needed atm
-//const font = 'ANSI Shadow';
-//figlet.defaults({fontPath: 'https://unpkg.com/figlet/fonts/'});
-//figlet.preloadFonts([font], ready);
+//all the js and jquery for the terminal-based portfolio site! this is where the magic happens :>
 
-//title on page
+
+// OLD title on page, b4 fonts were added
 //const greetings ='\n\n     ░█▀▀░█▀▀░█░█░█▀▀░█▀█░█░░░▀█▀░█▀█\n     ░▀▀█░▀▀█░█▀█░█▀▀░█░█░█░░░░█░░█░█\n     ░▀▀▀░▀▀▀░▀░▀░▀░░░▀▀▀░▀▀▀░▀▀▀░▀▀▀      * a hack club round 2 project by victoria chernobay';
 //const term = $('body').terminal(commands, {
  //   greetings
 //});
 
-//terminal commands
+//terminal formatting throughout
 const formatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 
+//commands in the terminal
 const commands = {
-    help: function(){
-        this.echo('Available commands: help, about, contact');
+    help(){
+        term.echo(`List of available commands: ${help}`);
+    },
+    echo(...args){
+        term.echo(args.join(" "));
     }
 
 };
 
-const font = 'ANSI Shadow';
 
+//all the available directories in the terminal, will be used for the "cd" command and to make it feel more like a real terminal
+const directories = {
+    //end of 04.08.2026 progress
+
+}
+
+const command_list = Object.keys(commands);
+const help = formatter.format(command_list);
+
+//import fonts that will be used for ascii art
+const font = 'ANSI Shadow';
 figlet.defaults({fontPath:'https://unpkg.com/figlet/fonts'});
 figlet.preloadFonts([font], ready);
 
+//disable original greeting
 const term = $('body').terminal(commands, {
-    greetings: false
+    greetings: false,
+    checkArity: false,
+    exit: false,
+    clear: false,
+    completion: true
 });
 term.pause();
 
+//function that will render the ascii art
 function render(text){
     const cols = term.cols();
     const ascii = figlet.textSync(text, {
         font: font,
         width: cols,
-        whitespaceBreak: true
+        whitespaceBreak: true,
     });
     return trim(ascii);
 
 }
 
+//remove extra whitespace from ascii art
 function trim(str){
 return str.replace(/[\n\s]+$/, '');
 
 }
 
+//when everything is loaded, this will be displayed
 function ready(){
     term.echo(() => {
         const ascii = render(' sshfolio');

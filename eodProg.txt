@@ -1,0 +1,10 @@
+disregard! for my own personal tracking & progress so i dont forget anything LOL
+
+eod prog:
+
+04.08.26 created header, help/echo commands, 
+ -- *to-do* offcode short: decide directories + commands, marketing video plot, add color pretty boring as is
+ --         offcode long: integrate video play?? e.g. trailer cmd that plays trailer, actually make the video (aprox 30 sec, really short, inspo git for davinci)
+ --         add into js and format properly. 
+ -- *wants* colors, better readability, more intuitive/more instructions for new to terminal
+ -- pushed 4:52pm
