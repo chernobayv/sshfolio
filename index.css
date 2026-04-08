@@ -1,0 +1,4 @@
+/*make text bigger in terminal*/
+:root {
+    --size: 1.2;
+}
