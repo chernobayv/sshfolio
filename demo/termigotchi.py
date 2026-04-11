@@ -31,7 +31,7 @@ def draw_cat(state="idle"):
     print(f"  ／l、      {BOLD}{bubble}{RESET}")
     print(f"（{CYAN}{eyes}{RESET} ７")
     print(f"  l、~ヽ")
-    print(f"  じしf_, )ノ")
+    print(f"  じし_, )ノ")
 
 #stats bar
 def bar(val, width=10, reverse=False):
@@ -96,6 +96,7 @@ class Pet:
         if self.happiness > 65: return "happy"
         return "idle"
 
+#saving the "soul of the pet" to a file so it can be loaded when a new terminal tab is opened
 def save_soul(pet):
     if not pet.alive:
         try:
@@ -113,6 +114,7 @@ def save_soul(pet):
             "last_seen": time.time(),
         }, f)
 
+#loading the soul of the pet when a new terminal tab is opened, and calculating how much time has passed since the last tab was closed to update the pet's stats accordingly
 def load_soul():
     try: 
         with open(SOUL_FILE) as f:
@@ -173,7 +175,9 @@ def hatch_sequence(name):
 
 #actually play the game!
 def main():
+
     existing = load_soul()
+    #if there is an existing pet, load it and show the appropriate message based on how long its been since the last time the user played, otherwise start a new pet
     if existing:
         pet = existing
         if not pet.alive:
@@ -212,6 +216,7 @@ def main():
         save_soul(pet)
     msg = ""
 
+    #main game loop, where the pet's stats are updated based on how much time has passed, and the user can
     while pet.alive:
         print(CLEAR, end="")
 
@@ -246,6 +251,7 @@ def main():
         elif cmd == "q": break
         else:            msg = ""
 
+    #when the pet dies, show the appropriate message based on how long they lived, and give the option to start a new pet or quit
     if not pet.alive:
         print(CLEAR, end="")
         draw_cat("sad")
