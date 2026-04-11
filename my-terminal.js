@@ -13,7 +13,7 @@ const formatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction'
 //commands in the terminal
 const commands = {
     help(){
-        term.echo(`List of available commands: ${help}`);
+        term.echo(`List of available commands: ${help} \n`);
     },
     echo(...args){
         term.echo(args.join(" "));
@@ -68,7 +68,7 @@ return str.replace(/[\n\s]+$/, '');
 function ready(){
     term.echo(() => {
         const ascii = render(' termigotchi');
-        return `\n\n${ascii}     * a hack club round 2 project by victoria chernobay\n \n \n> the internet is flooded with portfolios that all look the same, look vibecoded, or just have nothing to make them stand out. (zzz) \n> [[i;;]if you want to make something cool, (& earn a prize :> )] ditch the standard ui for a terminal-based site that feels like a real build! \n> type the command [[bu;;]interested] to find out how you can be a part of the next big thing. ☆ \n\n> or type [[bu;;]help] for a list of commands... you never know what you will find... \n`;
+        return `\n\n${ascii}     * a hack club round 2 project by victoria chernobay\n \n \n > love at first byte \n\n > most teens have never opened a terminal. (zzz) \n > [[i;;]termigotchi changes that, (& you earn a prize :> )] raise an ASCII cat, write real python, and master the command line without even realising it \n > type the command [[bu;;]hatch] to grow your own termigotchi. ☆ \n \n > or type [[bu;;]help] for a list of commands... your pet is waiting... \n`;
     }, {ansi: true}).resume();
 
 }
