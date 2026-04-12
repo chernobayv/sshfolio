@@ -1,47 +1,44 @@
 //all the js and jquery for the terminal-based portfolio site! this is where the magic happens :>
 
-
-// OLD title on page, b4 fonts were added
-//const greetings ='\n\n     ░█▀▀░█▀▀░█░█░█▀▀░█▀█░█░░░▀█▀░█▀█\n     ░▀▀█░▀▀█░█▀█░█▀▀░█░█░█░░░░█░░█░█\n     ░▀▀▀░▀▀▀░▀░▀░▀░░░▀▀▀░▀▀▀░▀▀▀░▀▀▀      * a hack club round 2 project by victoria chernobay';
-//const term = $('body').terminal(commands, {
- //   greetings
-//});
-
-//all the js and jquery for the terminal-based portfolio site! this is where the magic happens :>
-
 //terminal formatting throughout
 const formatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
+
+//track menu state
+let menuActive = false;
+let menuIndex = 0;
+const menuItems = ['instructions', 'prizes', 'about', 'gallery', 'demo'];
 
 //commands in the terminal
 const commands = {
     help() {
-        term.echo(`available commands: ${help} \n`);
-    },
-    echo(...args) {
-        term.echo(args.join(" "));
+        term.echo(`
+  ┌─────────────────────────────────────┐
+  │            available commands       │
+  └─────────────────────────────────────┘
+  [[bu;;]hatch]       — open the main menu
+  [[bu;;]cd [dir]]    — enter a directory
+  [[bu;;]cd ..]       — go back to menu
+  [[bu;;]clear]       — clear the screen
+  [[bu;;]rainbow]     — psst try it out
+  [[bu;;]demo]        — see a live termigotchi
+\n`);
     },
     hatch() {
-        term.echo(`\n  opening hatch sequence...\n`);
-        setTimeout(() => {
-            Object.keys(directories).forEach(dir => {
-                term.echo(`  [[bu;;]cd ${dir}]   — ${directories[dir].desc}`);
-            });
-            term.echo(`\n  [[bu;;]rainbow!] — ✦ secret command ✦\n`);
-        }, 400);
+        spawnMenu();
     },
     cd(dir) {
         if (!dir) { term.echo(`  usage: cd [directory]\n`); return; }
-        if (dir === '..') { term.echo(`\n  back to main. type [[bu;;]hatch] to explore again.\n`); return; }
+        if (dir === '..') { spawnMenu(); return; }
         if (!directories[dir]) { term.echo(`  directory not found: ${dir}\n`); return; }
         if (dir === 'demo') { spawnDemoPopup(); return; }
-        if (dir === 'prizes') {
-            term.echo(directories[dir].content, {ansi: true});
-            spawnConfetti();
-            return;
-        }
-        term.echo(directories[dir].content, {ansi: true});
+        if (dir === 'prizes') { renderPage('prizes'); spawnConfetti(); return; }
+        renderPage(dir);
     },
-    'rainbow'() {
+    clear() {
+        term.clear();
+        renderTitle();
+    },
+    rainbow() {
         spawnRainbow();
     },
     demo() {
@@ -74,8 +71,6 @@ const directories = {
 │  l、~ヽ  ─ │ ┌ ┐ └ ┘ ▓ ░ ▄ ▀ █   │
 │  じしf_,)ノ                          │
 └─────────────────────────────────────┘
-
-  type [[bu;;]cd ..] to go back ~
         `
     },
     prizes: {
@@ -101,8 +96,6 @@ const directories = {
   │                                 │
   │  (what's better than 2 pets ^.^)│
   └─────────────────────────────────┘
-
-  type [[bu;;]cd ..] to go back ~
         `
     },
     about: {
@@ -130,8 +123,6 @@ const directories = {
 
   ► no frameworks. no shortcuts.
   ► just you, python, and the terminal.
-
-  type [[bu;;]cd ..] to go back ~
         `
     },
     gallery: {
@@ -150,10 +141,6 @@ const directories = {
   ░   じしf_,)ノ                      ░
   ░                                 ░
   ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-
-  submit → [[bu;;]cd demo] to see one live
-
-  type [[bu;;]cd ..] to go back ~
         `
     },
     demo: {
@@ -161,6 +148,91 @@ const directories = {
         content: null
     }
 }
+
+//renders a page then shows the back prompt
+function renderPage(dir) {
+    menuActive = false;
+    term.freeze(false);
+    term.clear();
+    renderTitle();
+    term.echo(directories[dir].content, {ansi: true});
+    term.echo(`\n  press [[bu;;]backspace] to go back\n`);
+
+    function goBack(e) {
+        if (e.key === 'Enter' || e.key === 'Backspace') {
+            document.removeEventListener('keydown', goBack);
+            spawnMenu();
+        }
+    }
+    setTimeout(() => document.addEventListener('keydown', goBack), 300);
+}
+
+//renders just the ascii title
+function renderTitle() {
+    const ascii = render(' termigotchi');
+    term.echo(`\n\n${ascii}     * a hack club round 2 project by victoria chernobay\n`);
+}
+
+//main navigable menu
+function spawnMenu() {
+    menuActive = true;
+    menuIndex = 0;
+    term.freeze(true);
+    renderMenu();
+}
+
+function renderMenu() {
+    term.clear();
+    renderTitle();
+
+    let output = `
+  ／l、  use ↑ ↓ to move, enter to select
+（ﾟ､ ｡７  or just click/type any option
+  l、~ヽ
+  じしf_,)ノ
+
+  ∧,,,∧
+(  ̳• · • ̳)
+/    づ♡ explore!
+  ┌───────────────────────────────────────────────┐\n`;
+
+    menuItems.forEach((dir, i) => {
+        const selected = i === menuIndex;
+        const arrow = selected ? '[[b;#c084fc;]  >]' : '   ';
+        const name  = selected
+            ? `[[b;#c084fc;] ${dir}]`
+            : `[[bu;;] ${dir}]`;
+        output += `  │ ${arrow} ${name} — ${directories[dir].desc}\n`;
+    });
+
+    output += `  └───────────────────────────────────────────────┘\n`;
+    output += `\n  ✦ psst try typing [[bu;;]rainbow]\n`;
+
+    term.echo(output, {ansi: true});
+}
+
+//keyboard navigation for menu
+document.addEventListener('keydown', (e) => {
+    if (!menuActive) return;
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
+        renderMenu();
+    }
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        menuIndex = (menuIndex + 1) % menuItems.length;
+        renderMenu();
+    }
+    if (e.key === 'Enter') {
+        menuActive = false;
+        term.freeze(false);
+        const selected = menuItems[menuIndex];
+        if (selected === 'demo') { spawnDemoPopup(); return; }
+        if (selected === 'prizes') { renderPage(selected); spawnConfetti(); return; }
+        renderPage(selected);
+    }
+});
 
 //confetti rain for the prizes command
 function spawnConfetti() {
@@ -186,12 +258,12 @@ function spawnConfetti() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         pieces.forEach(p => {
             p.y += p.vy; p.x += p.vx;
-            if(p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
+            if (p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
             ctx.fillStyle = p.color;
             ctx.font = `${p.size}px monospace`;
             ctx.fillText(p.char, p.x, p.y);
         });
-        if(++frame > 250) { clearInterval(anim); canvas.remove(); }
+        if (++frame > 250) { clearInterval(anim); canvas.remove(); }
     }, 30);
 }
 
@@ -219,13 +291,19 @@ function spawnDemoPopup() {
     overlay.innerHTML = `
         <div style="position:relative;width:480px;height:480px;">
             <img src="YOUR_IMAGE_HERE.png" style="width:480px;height:480px;border-radius:50%;object-fit:cover;display:block;"/>
-            <iframe src="YOUR_REPLIT_LINK_HERE" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:260px;height:260px;border:none;border-radius:50%;overflow:hidden;"></iframe>
+            <iframe src="https://feline-thankful-tasks--vickach.replit.app" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:260px;height:260px;border:none;border-radius:0%;overflow:hidden;"></iframe>
             <span onclick="document.getElementById('tchi-overlay').remove()" style="position:absolute;top:8px;right:8px;color:#fff;cursor:pointer;font-family:monospace;font-size:16px;">x</span>
         </div>
     `;
-    overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.remove(); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
 }
+
+//fixed bottom hint bar — plain terminal text no colors
+const hintBar = document.createElement('div');
+hintBar.style.cssText = `position:fixed;bottom:0;left:0;width:100%;background:#0a0a0a;border-top:1px solid #333;padding:6px 16px;font-family:monospace;font-size:12px;color:#888;z-index:9998;box-sizing:border-box;`;
+hintBar.innerHTML = `↑ ↓ navigate &nbsp;│&nbsp; enter select &nbsp;│&nbsp; backspace go back &nbsp;│&nbsp; hatch main menu`;
+document.body.appendChild(hintBar);
 
 const command_list = Object.keys(commands);
 const help = formatter.format(command_list);
@@ -241,7 +319,8 @@ const term = $('body').terminal(commands, {
     checkArity: false,
     exit: false,
     clear: false,
-    completion: true
+    completion: true,
+    fontSize: 16
 });
 term.pause();
 
@@ -261,10 +340,30 @@ function trim(str){
     return str.replace(/[\n\s]+$/, '');
 }
 
-//when everything is loaded, display the greeting
+//when everything is loaded, display greeting and wait for enter
 function ready(){
-    term.echo(() => {
-        const ascii = render(' termigotchi');
-        return `\n\n${ascii}     * a hack club round 2 project by victoria chernobay\n \n \n > love at first byte \n\n > most teens have never opened a terminal. (zzz) \n > [[i;;]termigotchi changes that, (& you earn a prize :> )] raise an ASCII cat, write real python, and master the command line without even realising it \n > type the command [[bu;;]hatch] to grow your own termigotchi. ☆ \n \n > or type [[bu;;]help] for a list of commands... your pet is waiting... \n`;
-    }, {ansi: true}).resume();
+    term.resume();
+
+    //mobile warning
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        term.clear();
+        term.echo(`\n  ／l、  hey! termigotchi is best on a laptop.\n（>､ < ７  the terminal needs a real keyboard :>\n  l、~ヽ  come back on desktop!\n  じしf_,)ノ\n`);
+        return;
+    }
+
+    //show title and greeting
+    term.clear();
+    renderTitle();
+    term.echo(`\n  > love at first byte\n  > most teens have never opened a terminal. termigotchi changes that.\n  > raise an ASCII cat, write real python, earn a prize :>\n\n  [[b;#c084fc;]  press enter to start ↓]\n`);
+
+    //freeze terminal so keypresses dont register as commands
+    term.freeze(true);
+
+    //wait for enter then launch menu
+    $(document).one('keydown', function(e) {
+        if (e.key === 'Enter') {
+            term.freeze(false);
+            spawnMenu();
+        }
+    });
 }
