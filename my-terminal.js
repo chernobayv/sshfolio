@@ -192,8 +192,8 @@ function renderMenu() {
   じしf_,)ノ
 
   ∧,,,∧
-(  ̳• · • ̳)
-/    づ♡ explore!
+(  ̳• · • ̳)
+/    づ♡ explore!
   ┌───────────────────────────────────────────────┐\n`;
 
     menuItems.forEach((dir, i) => {
@@ -282,24 +282,35 @@ function spawnRainbow() {
     }, 5000);
 }
 
-//demo popup — circular tamagotchi frame with embedded replit
+//demo popup — simple box with replit embed, press q to close
 function spawnDemoPopup() {
-    term.echo(`\n  loading demo...\n`);
     const overlay = document.createElement('div');
     overlay.id = 'tchi-overlay';
     overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;`;
     overlay.innerHTML = `
-        <div style="position:relative;width:480px;height:480px;">
-            <img src="YOUR_IMAGE_HERE.png" style="width:480px;height:480px;border-radius:50%;object-fit:cover;display:block;"/>
-            <iframe src="https://feline-thankful-tasks--vickach.replit.app" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:260px;height:260px;border:none;border-radius:0%;overflow:hidden;"></iframe>
-            <span onclick="document.getElementById('tchi-overlay').remove()" style="position:absolute;top:8px;right:8px;color:#fff;cursor:pointer;font-family:monospace;font-size:16px;">x</span>
+        <div style="position:relative;width:480px;height:520px;border:1px solid #444;background:#0a0a0a;">
+            <div style="background:#1a1a1a;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;">
+                <span style="color:#888;font-size:12px;font-family:monospace;">termigotchi — demo</span>
+                <span style="color:#555;font-size:11px;font-family:monospace;">[ q ] close</span>
+                <span onclick="document.getElementById('tchi-overlay').remove()" style="color:#888;cursor:pointer;font-family:monospace;font-size:14px;">✕</span>
+            </div>
+            <iframe src="https://feline-thankful-tasks--vickach.replit.app" style="width:100%;height:calc(100% - 32px);border:none;display:block;"></iframe>
         </div>
     `;
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
+
+    function qClose(e) {
+        if (e.key === 'q' || e.key === 'Q') {
+            const ol = document.getElementById('tchi-overlay');
+            if (ol) { ol.remove(); }
+            document.removeEventListener('keydown', qClose);
+        }
+    }
+    document.addEventListener('keydown', qClose);
 }
 
-//fixed bottom hint bar — plain terminal text no colors
+//fixed bottom hint bar
 const hintBar = document.createElement('div');
 hintBar.style.cssText = `position:fixed;bottom:0;left:0;width:100%;background:#0a0a0a;border-top:1px solid #333;padding:6px 16px;font-family:monospace;font-size:12px;color:#888;z-index:9998;box-sizing:border-box;`;
 hintBar.innerHTML = `↑ ↓ navigate &nbsp;│&nbsp; enter select &nbsp;│&nbsp; backspace go back &nbsp;│&nbsp; hatch main menu`;
@@ -340,7 +351,106 @@ function trim(str){
     return str.replace(/[\n\s]+$/, '');
 }
 
-//when everything is loaded, display greeting and wait for enter
+//hatching intro sequence — egg wiggles, cracks, pet emerges, then launches menu
+function playIntro(callback) {
+    term.freeze(true);
+    term.clear();
+
+    const frames = [
+        // egg sitting still
+        `\n\n\n\n\n\n
+        ╭───╮
+       │     │
+        ╰───╯
+
+        ...`,
+
+        // wiggle left
+        `\n\n\n\n\n\n
+       ╭───╮
+      │     │
+       ╰───╯
+
+        ..?`,
+
+        // wiggle right
+        `\n\n\n\n\n\n
+         ╭───╮
+        │     │
+         ╰───╯
+
+        ..!`,
+
+        // wiggle left harder
+        `\n\n\n\n\n\n
+      ╭───╮
+     │     │
+      ╰───╯
+
+        !!`,
+
+        // first crack
+        `\n\n\n\n\n\n
+        ╭─/─╮
+       │  /  │
+        ╰───╯
+
+        *crack*`,
+
+        // bigger crack
+        `\n\n\n\n\n\n
+        ╭─/─╮
+       │ /// │
+        ╰─/─╯
+
+        *CRACK*`,
+
+        // shell splits
+        `\n\n\n\n\n\n
+       ╭╮   ╭╮
+      ╰╯   ╰╯
+      ／l、
+    （･ω･７
+
+        !!!`,
+
+        // pet fully out
+        `\n\n\n\n\n
+  ／l、
+（ﾟ､ ｡７
+  l、~ヽ
+  じしf_,)ノ
+
+  *hatched!*`,
+
+        // pet says hi
+        `\n\n\n\n\n
+  ／l、
+（ﾟ､ ｡７  hello!! :>
+  l、~ヽ
+  じしf_,)ノ
+
+  welcome to termigotchi ♡`,
+    ];
+
+    const delays = [700, 350, 350, 300, 500, 400, 450, 700, 1400];
+    let i = 0;
+
+    function showFrame() {
+        term.clear();
+        term.echo(frames[i]);
+        i++;
+        if (i < frames.length) {
+            setTimeout(showFrame, delays[i - 1]);
+        } else {
+            setTimeout(callback, 900);
+        }
+    }
+
+    showFrame();
+}
+
+//when everything is loaded, play intro then launch menu directly
 function ready(){
     term.resume();
 
@@ -351,19 +461,9 @@ function ready(){
         return;
     }
 
-    //show title and greeting
     term.clear();
-    renderTitle();
-    term.echo(`\n  > love at first byte\n  > most teens have never opened a terminal. termigotchi changes that.\n  > raise an ASCII cat, write real python, earn a prize :>\n\n  [[b;#c084fc;]  press enter to start ↓]\n`);
-
-    //freeze terminal so keypresses dont register as commands
-    term.freeze(true);
-
-    //wait for enter then launch menu
-    $(document).one('keydown', function(e) {
-        if (e.key === 'Enter') {
-            term.freeze(false);
-            spawnMenu();
-        }
+    playIntro(() => {
+        term.freeze(false);
+        spawnMenu();
     });
 }
